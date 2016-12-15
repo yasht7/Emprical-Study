@@ -1,0 +1,194 @@
+package original;
+
+import graphCode.Edge;
+import graphCode.SimpleGraph;
+import graphCode.Vertex;
+import sun.java2d.pipe.SpanShapeRenderer;
+
+import java.util.Iterator;
+
+public class PreFlow {
+
+    /**
+     * WE might need to create a hashmap.
+     * <p>
+     * Excess is maintained for all vertex
+     * label is " " "
+     * <p>
+     * Label for each vertex => h[v]
+     * flow for each edge => f[v][w]
+     */
+    static double[] hlabel;
+    static double[] excess;       // update required.?
+    static Double flow = 0.0;
+
+    private static SimpleGraph myResGraph;
+    private static SimpleGraph myGraph;
+
+    /**
+     * Initialize height, flow, excess
+     * height of source = total number of vertices
+     * excess = inflow - outflow
+     * All verices adjacent to source have flow and excess equal to the capacity
+     * rest all have everything set to 0
+     */
+
+    public static void init() {
+        // Iterate through the all vertices.
+        double counter = 0.0;
+        for (Iterator<Vertex> i = myGraph.vertices(); i.hasNext();){
+
+            // Adding a Break condition because the vertices() is iterating twice over teh same Damn list.
+            if(counter == myGraph.numVertices()/2.0)
+                break;
+
+            Vertex temp = i.next();
+            // .getData() returns the index of vertices
+            if (temp.getData() == 0) {
+                Vertex source = temp;
+                // This is the source
+                hlabel[0] = myGraph.numVertices();
+                excess[0] = 0;
+                // Get incident edges of temp which will return an iterator of connected vertices
+                // assign their excess as the capacity of the edge
+                for (Iterator<Edge> j = myGraph.incidentEdges(source); j.hasNext(); ) {
+                    // Incident edges to Source
+                    Edge edgeTemp2 = j.next();
+                    edgeTemp2.setFlow(edgeTemp2.getData());
+                    // Assign the connected(source) vertices with excess as capacity.
+                    Vertex temp2 = myGraph.opposite(source, edgeTemp2);
+                    excess[temp2.getData()] = edgeTemp2.getData();
+                }
+            } else if (temp.getName().equals('t')) {
+                continue;
+            }
+            counter++;
+        }
+    }
+
+    public static void push(Vertex v, Vertex w, Edge e) {
+        Double delta;
+        if (myGraph.isForward(v, w)) {
+            delta = Math.min(excess[v.getData()], e.getRemainedFlow());
+            e.setFlow(delta);
+            flow += delta;
+            excess[v.getData()] -= delta;
+            // For setting flow in myGraph
+            Edge fEdge = myGraph.getEdge(v, w);
+            fEdge.setFlow(delta);
+            //update reverse edge
+            reverse(e);
+        } else {
+            // get the actual edge and delete it's flow by the min of excess or flow(e); this flow is what we can undo
+            Edge bEdge = myGraph.getEdge(w, v);
+            delta = Math.min(excess[v.getData()], bEdge.getFlow());
+            // minus flow
+            bEdge.minusFlow(delta);
+            e.minusFlow(delta);
+            flow -= delta;
+            excess[v.getData()] -= delta;
+            // add edge in residual graph if it does not exist
+            if (myResGraph.getEdge(w, v) == null)
+                myResGraph.insertEdge(w, v, delta, myResGraph.numEdges() + 1);
+            else
+                myResGraph.getEdge(w, v).addFlow(delta);
+        }
+        //System.out.println("Yo.!");
+    }
+
+    public static void relabel(Vertex v) {
+        // excess(v) < 0 -- obviously and for all h(w) > h(v) :: Stuck because at excess node v we have a low height
+        hlabel[v.getData()] += 1;
+    }
+
+    // being called from GraphInput
+    public static Double maxFlow(SimpleGraph theGraph, SimpleGraph secondGraph) {
+        int max = 0;
+        int flag = 1;
+
+        myGraph = theGraph;
+        myResGraph = secondGraph;
+
+        hlabel = new double[myGraph.numVertices()];
+        excess = new double[myGraph.numVertices()];
+
+        for(int l =0; l< hlabel.length ; l++){
+            hlabel[l] = 0;
+            excess[l] = 0;
+        }
+
+        init();
+
+        for (Iterator<Edge> i = myResGraph.incidentEdges(myResGraph.aVertex()); i.hasNext(); ) {
+            // Only the edges form the source
+            Edge e = i.next();
+            reverse(e);
+        }
+
+        // Operation
+        do {
+            for (int i = 0; i < excess.length - 1; i++) {          // exclude sink
+                /**Optimization
+                 * Selecting maximum excess*/
+                if (excess[i] > 0) {
+                    max = i;        // This is the index of excess vertex
+                    break;
+                }
+                max = 0;
+            }
+            if (max != 0) {
+                //boolean decide = true;
+                //Vertex at index = max.
+                Vertex v = myResGraph.getSpecificVertex(max);
+                // Find adjacent w's
+                for (Iterator<Edge> e = myResGraph.incidentEdges(v); e.hasNext(); ) {
+                    Edge E = e.next();
+                    /** optimization:
+                     * selecting the edge with maximum capacity */
+                    Vertex w = myResGraph.opposite(v, E);
+                    // so that we keep relabeling this particular edge until we can push on it.
+                    if (hlabel[v.getData()] > hlabel[w.getData()]) {
+                        push(v, w, E);
+                    } else {
+                        relabel(v);
+                    }
+                }
+            }
+            else
+                flag = 0;
+        } while (flag == 1);
+
+        return flow;
+    }
+
+    // Creating a residual graph
+    public static void reverse(Edge e) {
+        Vertex temp1 = e.getFirstEndpoint();
+        Vertex temp2 = e.getSecondEndpoint();
+        e.setV1(temp2);
+        e.setV2(temp1);
+    }
+/*
+    public static void updateReverse(Vertex v1, Vertex v2, Double flowValue){
+
+        // looP through the edges of v1 and find v2 IN Residual Graph
+        Edge e = null;
+        for(Iterator<Edge> i = myResGraph.incidentEdges(v1); i.hasNext();){
+            Edge E = i.next();
+            // Get the edge connecting v1 & v2
+            if(myResGraph.opposite(v1, E) == v2){
+                // Changing the direction of edge in Residual graph Data is the same
+                E.setV1(v2);
+                E.setV2(v1);
+
+                // If the flowValue received is less than current flow
+                if(flowValue < E.getFlow()){
+                    E.minusFlow(flowValue);
+                    // Adding edge in residual graph
+                }
+            }
+        }
+    }
+*/
+
+}

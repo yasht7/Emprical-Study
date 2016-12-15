@@ -1,0 +1,49 @@
+
+/**Check point 1*/
+// Null pointer debugger.!
+//        System.out.println("Hlabel array:");
+//        for(double d : hlabel)
+//            System.out.print(d + ",");
+//        System.out.println();
+//
+//        System.out.println("Excess array:");
+//        for(int j = 0; j < excess.length ; j++)
+//            System.out.print(excess[j] + ",");
+//        System.out.println();
+
+/**Checkpoint 2
+ * Residual Graph is different form original Test-Success.!*/
+//        System.out.println(myGraph.aVertex().getName() + " -> " + myGraph.getSpecificVertex(1).getName());
+//        System.out.println(myGraph.isForward(myGraph.aVertex(), myGraph.getSpecificVertex(1)));
+//
+//        System.out.println(myResGraph.aVertex().getName() + " -> " + myResGraph.getSpecificVertex(1).getName());
+//        System.out.println(myResGraph.isForward(myResGraph.aVertex(), myResGraph.getSpecificVertex(1)));
+
+/**Checkpoint 3
+ * Relabeling working fine*/
+// Used the code of Checkpoint 1
+
+/**Reversing of edge working fine in Push
+ * after some major trial and error.!*/
+//        System.out.println(E.getFirstEndpoint().getName() + " -> " + E.getSecondEndpoint().getName());
+//        System.out.println(myGraph.isForward(myGraph.getSpecificVertex(u.getData()), myGraph.getSpecificVertex(v.getData())));
+//
+//        System.out.println(resE.getFirstEndpoint().getName() + " -> " + resE.getSecondEndpoint().getName());
+//        System.out.println(myResGraph.isForward(myResGraph.getSpecificVertex(u.getData()), myResGraph.getSpecificVertex(v.getData())));
+
+
+/**Checkpoint 4
+ * Almost Final Here.*/
+// in getMinhlabel
+//   System.out.println("The min height vertex for " + v.getName() + " is: " + minhlabelVertex.getName() + " with height as " + minhlabel);
+//   if(u.getName().equals("v5") && v.getName().equals("v7")){
+//       System.out.println(u.getName() + " -> " + v.getName() + " " + myResGraph.isForward(myResGraph.getSpecificVertex(u.getData()), myResGraph.getSpecificVertex(v.getData())));
+//       System.out.println("Excess at v7 is: " + excess[v.getData()]);
+//       flag = 0;
+//   }
+//   System.out.print("Relabeling " + u.getName());
+//   relabel(u);
+//   System.out.println(" to height: " + hlabel[u.getData()]);
+
+
+
